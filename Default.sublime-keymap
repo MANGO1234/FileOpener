@@ -1,0 +1,9 @@
+[{
+    "keys": ["enter"],
+    "command": "close_file",
+    "context": [{
+        "key": "setting.openingFiles",
+        "operator": "equal",
+        "operand": true
+    }]
+}]
