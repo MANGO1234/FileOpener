@@ -1,8 +1,16 @@
 [{
     "keys": ["enter"],
-    "command": "close_file",
+    "command": "file_opener_open",
     "context": [{
-        "key": "setting.openingFiles",
+        "key": "setting.fileOpener",
+        "operator": "equal",
+        "operand": true
+    }]
+},{
+    "keys": ["tab"],
+    "command": "file_opener_autocomplete",
+    "context": [{
+        "key": "setting.fileOpener",
         "operator": "equal",
         "operand": true
     }]
