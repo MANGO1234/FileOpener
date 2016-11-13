@@ -1,4 +1,4 @@
-from os.path import split, isdir, isfile, exists
+from os.path import split, isdir, isfile, exists, join
 from os import stat
 
 import sublime
@@ -46,7 +46,7 @@ class FileOpenerListener(sublime_plugin.ViewEventListener):
 
     def on_modified(self):
         view = self.view
-        # prevent repeating update that breaks it 
+        # prevent repeating update that breaks it
         if view.settings().get("fileOpenerRedrawing", False):
             view.settings().set("fileOpenerRedrawing", False)
             view.settings().set("fileOpenerRedrawing2", True)
@@ -55,7 +55,7 @@ class FileOpenerListener(sublime_plugin.ViewEventListener):
 
     def on_selection_modified(self):
         view = self.view
-        # prevent repeating update that breaks it 
+        # prevent repeating update that breaks it
         if view.settings().get("fileOpenerRedrawing2", False):
             view.settings().set("fileOpenerRedrawing2", False)
             return
@@ -75,58 +75,77 @@ class FileOpenerListener(sublime_plugin.ViewEventListener):
         return None
 
 
-class FileOpenerCommandListener(sublime_plugin.EventListener):
+class FileSystem():
+    currentDirectory = []
+    fuzzyDirectory = []
+    dirBase = ""
+    fuzzyFilter = ""
 
-    def on_text_command(self, view, command_name, args):
-        if view.settings().get("fileOpener", False):
-            print(command_name, args)
-            return None
+    def updatePath(self, path):
+        (base, end) = split(path)
+        self.dirBase = base
+        self.fuzzyFilter = end
+        self.currentDirectory = directory_files(base)
+        fs = [f[1] for f in self.currentDirectory]
+        self.fuzzyDirectory = fuzzy_filter(end, fs)
+
+
+fileSystem = FileSystem()
+
+# class FileOpenerCommandListener(sublime_plugin.EventListener):
+
+#     def on_text_command(self, view, command_name, args):
+#         if view.settings().get("fileOpener", False):
+#             print(command_name, args)
+#             return None
 
 
 class FileOpenerRedrawCommand(sublime_plugin.TextCommand):
 
     def run(self, edit, path, error=""):
         view = self.view
-        if view.settings().get("fileOpener", False):
-            print(error)
-            print(error =="")
-            if error == "":
-                view.replace(edit, sublime.Region(
-                    0, view.size()), self.getOutput(path))
-            else:
-                view.replace(edit, sublime.Region(
-                    0, view.size()), path + '\n' + error)
+        if not view.settings().get("fileOpener", False):
+            return
+
+        if error == "":
+            output = path + '\n' + self.getOutput(path)
+        else:
+            output = path + '\n' + error
+        view.replace(edit, sublime.Region(0, view.size()), output)
 
     def getOutput(self, path):
-        (base, end) = split(path)
-        fs = directory_files(base)
-        fs = [f[1] for f in fs]
-        fs = fuzzy_filter(end, fs)
-        return path + '\n' + '\n'.join(map(lambda f: f, fs))
+        fileSystem.updatePath(path)
+        return '\n'.join(map(lambda f: f, fileSystem.fuzzyDirectory))
 
 
 class FileOpenerAutocompleteCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
         view = self.view
+        if not view.settings().get("fileOpener", False):
+            return
+
         sel = view.sel()
         r = view.line(0)
         if sel[0].b == r.b:
             path = view.substr(r)
-            (base, end) = split(path)
-            fs = directory_files(base)
-            fs = [f[1] for f in fs]
-            fs = fuzzy_filter(end, fs)
-            view.replace(edit, sublime.Region(r.b - len(end), r.b), fs[0])
+            fileSystem.updatePath(path)
+            fuzzyFile = fileSystem.fuzzyDirectory[0]
+            if isdir(join(fileSystem.dirBase, fuzzyFile)):
+                fuzzyFile += "/"
+            view.replace(edit, sublime.Region(r.b - len(fileSystem.fuzzyFilter), r.b), fuzzyFile)
+
 
 
 class FileOpenerOpenCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
         view = self.view
+        if not view.settings().get("fileOpener", False):
+            return
+
         activeWindow = sublime.active_window()
-        r = view.line(0)
-        path = view.substr(r)
+        path = view.substr(view.line(0))
         if not exists(path):
             updateView(view, "Unknown file/directory")
         elif isdir(path):
