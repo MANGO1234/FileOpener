@@ -8,6 +8,7 @@ from .fuzzy import fuzzy_filter
 from .paths import directory_files
 from .hist import FileHistory
 
+
 views = {}
 
 
@@ -171,12 +172,12 @@ class FileOpenerOpenCommand(sublime_plugin.TextCommand):
             project = activeWindow.project_data()
             project["folders"].append({"path": path})
             activeWindow.set_project_data(project)
-            FileHistory.addEntry(path)
+            FileHistory.add_entry(path)
         elif isfile(path):
             activeWindow.run_command("close_file")
             v = activeWindow.open_file(path)
             activeWindow.focus_view(v)
-            FileHistory.addEntry(path)
+            FileHistory.add_entry(path)
         else:
             print("what kind of file is this...")
 
@@ -188,4 +189,22 @@ class FileOpenerUpCommand(sublime_plugin.TextCommand):
         if not view.settings().get("fileOpener", False):
             return
 
-        viewData = views[view.id()]
+        view_data = views[view.id()]
+        hist = view_data["hist"]
+        # todo
+        view.replace(edit, view.line(0), hist.up())
+        updateView(view)
+
+
+class FileOpenerDownCommand(sublime_plugin.TextCommand):
+
+    def run(self, edit):
+        view = self.view
+        if not view.settings().get("fileOpener", False):
+            return
+
+        view_data = views[view.id()]
+        hist = view_data["hist"]
+        # todo
+        view.replace(edit, view.line(0), hist.down())
+        updateView(view)

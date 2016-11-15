@@ -2,7 +2,7 @@ class FileHistory():
     hist = []
 
     @staticmethod
-    def add_entry(path, type):
+    def add_entry(path):
         FileHistory.hist.append(path)
 
     @staticmethod
@@ -18,11 +18,13 @@ class FileHistoryOb():
         self.i = len(self.hist) - 1
 
     def up(self):
+        print(self.hist)
         if self.i > 0:
             self.i -= 1
         return self.hist[self.i]
 
     def down(self):
+        print(self.i)
         if self.i < len(self.hist[self.i]):
             self.i += 1
         return self.hist[self.i]

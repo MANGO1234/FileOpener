@@ -6,9 +6,33 @@
         "operator": "equal",
         "operand": true
     }]
-},{
+}, {
     "keys": ["tab"],
     "command": "file_opener_autocomplete",
+    "context": [{
+        "key": "setting.fileOpener",
+        "operator": "equal",
+        "operand": true
+    }]
+}, {
+    "keys": ["escape"],
+    "command": "close_file",
+    "context": [{
+        "key": "setting.fileOpener",
+        "operator": "equal",
+        "operand": true
+    }]
+}, {
+    "keys": ["up"],
+    "command": "file_opener_up",
+    "context": [{
+        "key": "setting.fileOpener",
+        "operator": "equal",
+        "operand": true
+    }]
+}, {
+    "keys": ["down"],
+    "command": "file_opener_down",
     "context": [{
         "key": "setting.fileOpener",
         "operator": "equal",
