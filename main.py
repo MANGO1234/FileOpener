@@ -6,6 +6,9 @@ import sublime_plugin
 
 from .fuzzy import fuzzy_filter
 from .paths import directory_files
+from .hist import FileHistory
+
+views = {}
 
 
 class FileOpenerCommand(sublime_plugin.TextCommand):
@@ -15,10 +18,25 @@ class FileOpenerCommand(sublime_plugin.TextCommand):
         view.set_scratch(True)
         view.settings().set("fileOpener", True)
         view.settings().set("word_wrap", False)
+        views[view.id()] = {
+            "pointer": FileHistory.get_entry_pointer()
+        }
         # vintageous
         view.run_command("_enter_insert_mode", {
                          'count': 1, 'mode': 'mode_internal_normal'})
         view.settings().set("__vi_external_disable", True)
+
+
+# class Views():
+#     views = []
+
+#     @staticmethod
+#     def addAndGetView(view):
+#         views[view.id()] = view
+
+#     @staticmethod
+#     def removeView(view):
+#         del views[view.id()]
 
 
 def updateView(view, error=""):
@@ -133,8 +151,8 @@ class FileOpenerAutocompleteCommand(sublime_plugin.TextCommand):
             fuzzyFile = fileSystem.fuzzyDirectory[0]
             if isdir(join(fileSystem.dirBase, fuzzyFile)):
                 fuzzyFile += "/"
-            view.replace(edit, sublime.Region(r.b - len(fileSystem.fuzzyFilter), r.b), fuzzyFile)
-
+            view.replace(edit, sublime.Region(
+                r.b - len(fileSystem.fuzzyFilter), r.b), fuzzyFile)
 
 
 class FileOpenerOpenCommand(sublime_plugin.TextCommand):
@@ -153,9 +171,18 @@ class FileOpenerOpenCommand(sublime_plugin.TextCommand):
             project = activeWindow.project_data()
             project["folders"].append({"path": path})
             activeWindow.set_project_data(project)
+            FileHistory.addEntry(path)
         elif isfile(path):
             activeWindow.run_command("close_file")
             v = activeWindow.open_file(path)
             activeWindow.focus_view(v)
+            FileHistory.addEntry(path)
         else:
             print("what kind of file is this...")
+
+
+class FileOpenerUpCommand(sublime_plugin.TextCommand):
+
+    def run(self, edit):
+
+        pass
