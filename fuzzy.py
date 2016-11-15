@@ -133,7 +133,7 @@ def fuzzy_match(pattern, string):
     return (matched, score, string, formattedStr)
 
 
-def fuzzy_filter(pattern, strings, details = False):
+def fuzzy_filter(pattern, strings, details=False):
     strings = [fuzzy_match(pattern, s) for s in strings]
     strings.sort(reverse=True)
     if details:
