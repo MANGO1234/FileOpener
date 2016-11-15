@@ -19,7 +19,7 @@ class FileOpenerCommand(sublime_plugin.TextCommand):
         view.settings().set("fileOpener", True)
         view.settings().set("word_wrap", False)
         views[view.id()] = {
-            "pointer": FileHistory.get_entry_pointer()
+            "hist": FileHistory.get_history()
         }
         # vintageous
         view.run_command("_enter_insert_mode", {
@@ -184,5 +184,8 @@ class FileOpenerOpenCommand(sublime_plugin.TextCommand):
 class FileOpenerUpCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
+        view = self.view
+        if not view.settings().get("fileOpener", False):
+            return
 
-        pass
+        viewData = views[view.id()]
